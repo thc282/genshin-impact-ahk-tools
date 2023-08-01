@@ -15,14 +15,14 @@ I_Icon = klee.ico
 IfExist, %I_Icon%
 Menu, Tray, Icon, %I_Icon%
 
-#IfWinActive ahk_exe YuanShen.exe
+#IfWinActive ahk_exe GenshinImpact.exe
 
-F1::l
-F2::o
+;F1::l
+;F2::o
 RCtrl::LCtrl
 LCtrl::MButton
 
-; 鼠标侧键 1 等于前进，连按两下等于按住 w
+; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
 XButton1::
     Send {w down}
     KeyWait, XButton1, T0.3
@@ -42,7 +42,7 @@ XButton1::
     }
 Return
 
-; 鼠标侧键 2 等于 F 键，按住等于按住 Alt 键显示鼠标
+; 鼠標側鍵 2 等於 F 键，按住等於按住 Alt 鍵顯示鼠標標
 XButton2::
     KeyWait, XButton2, T0.2
     If ErrorLevel
@@ -57,7 +57,7 @@ XButton2::
     }
 Return
 
-; 按住鼠标中键等于狂按左键（攻击或者跳过对话）
+; 按住鼠標中鍵等於狂按左鍵（攻擊或者跳過對话）
 MButton::
     Loop
     {
@@ -70,7 +70,7 @@ MButton::
     }
 Return
 
-; 按住空格等于狂按空格（按住 1.3 秒之后才触发，因为离开浪船需要按住空格）
+; 按住空格等於狂按空格（按住 1.3 秒之后才觸發，因为離開浪船需要按住空格）
 ~*Space::
     KeyWait, Space, T1.3
     If Not ErrorLevel
@@ -108,7 +108,7 @@ Return
     }
 Return
 
-; 按住 f 等于狂按 f
+; 按住 f 等於狂按 f
 *f::
     Loop
     {
@@ -121,7 +121,7 @@ Return
     }
 Return
 
-; 点两下 w 按住 w
+; 點兩下 w 按住 w
 ~w::
     KeyWait, w, T0.3
     If Not ErrorLevel
@@ -135,7 +135,7 @@ Return
     }
 Return
 
-; 释放按住的 w
+; 釋放按住的 w
 ~s::
     If Not GetKeyState("w", "P")
     {
@@ -143,7 +143,7 @@ Return
     }
 Return
 
-; 队伍切换界面左右
+; 隊伍切換界面左右
 ~a::
     PixelGetColor, color, 64, 538
     If (color == 0xD8E5EC)
@@ -166,7 +166,7 @@ Return
     }
 Return
 
-; 对话选项
+; 對話選項
 Selection(n) {
     xpos := 1298
     choices := 0
@@ -277,8 +277,8 @@ Return
     }
 Return
 
-; 替换圣遗物、领取任务奖励
-`::
+; 替换聖遺物
+p::
     BlockInput, MouseMove
     MouseGetPos, xpos, ypos
     MouseMove, 1600, 1000
@@ -291,7 +291,7 @@ Return
     BlockInput, MouseMoveOff
 Return
 
-; 强化圣遗物、领取任务奖励
+; 强化聖遺物(手動)
 F8::
     BlockInput, MouseMove
     MouseGetPos, xpos, ypos
@@ -312,17 +312,35 @@ F8::
     Sleep 100
     MouseMove, 1600, 1000
     Click
+    MouseMove, 1180, 754
+    Click
     MouseMove, 130, 150
     Click
     MouseMove, 130, 225
     Click
     MouseMove, 1250, 870
     Click
-    MouseMove, %xpos%, %ypos%
+    ;MouseMove, xpos, ypos
     BlockInput, MouseMoveOff
 Return
 
-; 点击右下角的确定
+; 强化聖遺物(自動置入)
+F9::
+    BlockInput, MouseMove
+    MouseMove, 1650, 760
+    Click
+    MouseMove, 1600, 1000
+    Click
+    MouseMove, 1180, 754
+    Click
+    MouseMove, 130, 150
+    Click
+    MouseMove, 130, 225
+    Click
+    BlockInput, MouseMoveOff
+Return
+
+; 點擊右下角的確定/砍樹
 Tab::
     KeyWait, Tab, T0.3
     If ErrorLevel
@@ -348,7 +366,10 @@ Tab::
     }
 Return
 
-; 5个探索派遣
+; 5個探索派遣
+;x1, y1 為地區座標
+;x2, y2 為人物座標
+;x3, y3 為派遣座標
 Expedition(x1, y1, x2, y2, x3, y3) {
     BlockInput, MouseMove
     MouseMove, x1, y1
@@ -369,13 +390,13 @@ Expedition(x1, y1, x2, y2, x3, y3) {
     BlockInput, MouseMoveOff
 }
 
-F9::
+F10::
     ; 蒙德
-    Expedition(150, 165, 1063, 333, 300, 150)
-    Expedition(150, 165, 1176, 659, 300, 300)
+    Expedition(150, 165, 1063, 333, 300, 150) ; 派遣1
+    Expedition(150, 165, 1176, 659, 300, 300) ; 派遣2
     ; 璃月
-    Expedition(150, 230, 724, 333, 300, 150)
-    Expedition(150, 230, 961, 454, 300, 300)
+    Expedition(150, 230, 724, 333, 300, 150)  ; 派遣3
+    Expedition(150, 230, 961, 454, 300, 300)  ; 派遣4
     ; 稻妻
-    Expedition(150, 300, 1101, 283, 300, 150)
+    Expedition(150, 300, 1101, 283, 300, 150) ; 派遣5
 Return
