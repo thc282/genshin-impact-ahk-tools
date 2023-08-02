@@ -368,35 +368,46 @@ Return
 
 ; 5個探索派遣
 ;x1, y1 為地區座標
-;x2, y2 為人物座標
-;x3, y3 為派遣座標
+;x2, y2 為派遣座標
+;x3, y3 為人物座標
 Expedition(x1, y1, x2, y2, x3, y3) {
     BlockInput, MouseMove
+    ;選擇地區
     MouseMove, x1, y1
     Sleep 50
     Click
+    ;選擇派遣位置
     MouseMove, x2, y2
     Sleep 50
     Click
+    ;領取獎勵(勿動)
     MouseMove, 1650, 1000
     Click
+    ;退出獎勵介面
     Sleep 250
     Click
+    ;再次按派遣按鈕
     Sleep 250
     Click
+    ;選擇人物
     MouseMove, x3, y3
     Sleep 50
     Click
     BlockInput, MouseMoveOff
 }
 
+;x1, y1 為地區座標
+;x2, y2 為派遣座標
+;x3, y3 為人物座標
+;Expedition(x1, y1, x2, y2, x3, y3)
 F10::
     ; 蒙德
-    Expedition(150, 165, 1063, 333, 300, 150) ; 派遣1
-    Expedition(150, 165, 1176, 659, 300, 300) ; 派遣2
+    Expedition(150, 165, 1063, 333, 300, 150)
     ; 璃月
-    Expedition(150, 230, 724, 333, 300, 150)  ; 派遣3
-    Expedition(150, 230, 961, 454, 300, 300)  ; 派遣4
+    Expedition(150, 230, 810, 560, 300, 260)
+    Expedition(150, 230, 560, 560, 300, 370)
     ; 稻妻
-    Expedition(150, 300, 1101, 283, 300, 150) ; 派遣5
+    Expedition(150, 300, 1100, 280, 300, 260)
+    ;須彌
+    Expedition(150, 380, 1030, 610, 300, 150)
 Return
