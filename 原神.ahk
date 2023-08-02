@@ -367,9 +367,9 @@ Tab::
 Return
 
 ; 5個探索派遣
-;x1, y1 為地區座標
-;x2, y2 為派遣座標
-;x3, y3 為人物座標
+; x1, y1 為地區座標
+; x2, y2 為派遣座標
+; x3, y3 為人物座標
 Expedition(x1, y1, x2, y2, x3, y3) {
     BlockInput, MouseMove
     ;選擇地區
@@ -396,10 +396,10 @@ Expedition(x1, y1, x2, y2, x3, y3) {
     BlockInput, MouseMoveOff
 }
 
-;x1, y1 為地區座標
-;x2, y2 為派遣座標
-;x3, y3 為人物座標
-;Expedition(x1, y1, x2, y2, x3, y3)
+; x1, y1 為地區座標
+; x2, y2 為派遣座標
+; x3, y3 為人物座標
+; Expedition(x1, y1, x2, y2, x3, y3)
 F10::
     ; 蒙德
     Expedition(150, 165, 1063, 333, 300, 150)
@@ -408,6 +408,6 @@ F10::
     Expedition(150, 230, 560, 560, 300, 370)
     ; 稻妻
     Expedition(150, 300, 1100, 280, 300, 260)
-    ;須彌
+    ; 須彌
     Expedition(150, 380, 1030, 610, 300, 150)
 Return
