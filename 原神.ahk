@@ -340,7 +340,7 @@ F9::
     BlockInput, MouseMoveOff
 Return
 
-; 點擊右下角的確定/砍樹
+; 點擊右下角的確定/砍樹/領取紀行/10抽/...(總之右下角的按鈕都行)
 Tab::
     KeyWait, Tab, T0.3
     If ErrorLevel
