@@ -20,7 +20,6 @@ Menu, Tray, Icon, %I_Icon%
 ;F1::l
 ;F2::o
 ;RCtrl::LCtrl
-h::MButton
 
 ; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
 XButton1::
@@ -121,7 +120,7 @@ Return
     }
 Return
 
-; 點兩下 h 使用元素視野
+; 點兩下 h 自動4秒元素視野/長按則手動元素視野
 ~h::
     KeyWait, h, T0.3
     If Not ErrorLevel
@@ -131,9 +130,14 @@ Return
         {
             KeyWait, h
             Send {MButton Down}
+            ;每1000為1秒 //可自行改動
             Sleep, 4000
             Send {MButton Up}
         }
+    }
+    Else
+    {
+        h::MButton
     }
 Return
 
