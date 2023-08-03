@@ -17,9 +17,13 @@ Menu, Tray, Icon, %I_Icon%
 
 #IfWinActive ahk_exe GenshinImpact.exe
 
+;以下是熱鍵設定
 ;F1::l
 ;F2::o
 ;RCtrl::LCtrl
+
+; 按Alt+N暫停所有熱鍵, 再次Alt+N啟動
+~!n::Suspend
 
 ; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
 XButton1::
