@@ -19,8 +19,8 @@ Menu, Tray, Icon, %I_Icon%
 
 ;F1::l
 ;F2::o
-RCtrl::LCtrl
-LCtrl::MButton
+;RCtrl::LCtrl
+h::MButton
 
 ; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
 XButton1::
@@ -117,6 +117,22 @@ Return
         If Not ErrorLevel
         {
             Break
+        }
+    }
+Return
+
+; 點兩下 h 使用元素視野
+~h::
+    KeyWait, h, T0.3
+    If Not ErrorLevel
+    {
+        KeyWait, h, D T0.2
+        If Not ErrorLevel
+        {
+            KeyWait, h
+            Send {MButton Down}
+            Sleep, 4000
+            Send {MButton Up}
         }
     }
 Return
@@ -340,7 +356,7 @@ F9::
     BlockInput, MouseMoveOff
 Return
 
-; 點擊右下角的確定/砍樹/領取紀行/10抽/...(總之右下角的按鈕都行)
+; 點擊右下角的確定/砍樹
 Tab::
     KeyWait, Tab, T0.3
     If ErrorLevel
@@ -387,7 +403,7 @@ Expedition(x1, y1, x2, y2, x3, y3) {
     Sleep 250
     Click
     ;再次按派遣按鈕
-    Sleep 250
+    Sleep 300
     Click
     ;選擇人物
     MouseMove, x3, y3
