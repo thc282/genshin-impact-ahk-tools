@@ -45,7 +45,7 @@ Tab 键用来点右下角的按钮，这样就不用鼠标去找位置点了。
 
 ## 使用方法
 到 [AutoHotkey 官网](https://www.autohotkey.com/) 下載 AutoHotkey。正常進行安裝。（注意：下載2.0版本） \
-[到這裡選版本](https://github.com/thc282/genshin-impact-ahk-tools/releases)，解壓。然后雙擊運行 `原神.ahk` 。
+[到這裡選版本](https://github.com/thc282/genshin-impact-ahk-tools/releases)，下載ZIP檔並解壓。然后雙擊運行 `原神.ahk` 。
 
 ## 來自作者的免責聲明
 我自己從開服到現在一直在正常使用，沒有被封號，但這不代表以后不會被封號。
