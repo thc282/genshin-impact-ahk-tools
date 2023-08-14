@@ -1,4 +1,4 @@
-# 原神快捷鍵小幫手【國服版專用】（轉自[ganlvtech](https://github.com/ganlvtech/genshin-impact-ahk)）
+# 原神快捷鍵小幫手【國服版專用】（轉自[ganlvtech](https://github.com/ganlvtech/genshin-impact-ahk)）[俢改版]
 首先明確，這是輔助按鍵腳本，而不是外挂，不含有作弊功能。
 
 
