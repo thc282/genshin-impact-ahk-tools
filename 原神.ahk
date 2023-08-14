@@ -1,203 +1,232 @@
 ; https://stackoverflow.com/questions/43298908/how-to-add-administrator-privileges-to-autohotkey-script
+#SingleInstance Force
 full_command_line := DllCall("GetCommandLine", "str")
 if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
 {
-    try ; leads to having the script re-launching itself as administrator
-    {
-        if A_IsCompiled
-            Run *RunAs "%A_ScriptFullPath%" /restart
-        else
-            Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
-    }
-    ExitApp
+  try
+  {
+    if A_IsCompiled
+      Run '*RunAs "' A_ScriptFullPath '" /restart'
+    else
+      Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+  }
+  ExitApp
 }
-I_Icon = klee.ico
-IfExist, %I_Icon%
-Menu, Tray, Icon, %I_Icon%
 
-#IfWinActive ahk_exe GenshinImpact.exe
+;設定取位方法
+CoordMode "Pixel", "Client"
+CoordMode "Mouse", "Client"
+
+SendMode "Event"
+
+;設定圖標
+I_Icon := "klee.ico"
+If FileExist(I_Icon)
+    TraySetIcon(I_Icon)
+
+#HotIf Winactive("ahk_exe GenshinImpact.exe")
+
+; 按Alt+N暫停所有熱鍵, 再次Alt+N啟動
+#SuspendExempt 
+~!n::
+{
+    Suspend
+    ToolTip a_isSuspended ? "插件已暫停":"插件運作中"
+    Sleep 3000
+    ToolTip
+}
+#SuspendExempt false
 
 ;以下是熱鍵設定
 ;F1::l
 ;F2::o
 ;RCtrl::LCtrl
+*`::Tab
+~#`::Send "#``"
 
-; 按Alt+N暫停所有熱鍵, 再次Alt+N啟動
-~!n::Suspend
 
 ; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
 XButton1::
-    Send {w down}
-    KeyWait, XButton1, T0.3
-    If Not ErrorLevel
+{
+    Send "{w down}"
+    If KeyWait("XButton1", "T0.3")
     {
-        Send {w up}
-        KeyWait, XButton1, D T0.2
-        If Not ErrorLevel
+        Send "{w up}"
+        If KeyWait("XButton1", "D T0.2")
         {
-            Send {w down}
+            Send "{w down}"
         }
     }
     Else
     {
-        KeyWait, XButton1
-        Send {w up}
+        KeyWait "XButton1"
+        Send "{w up}"
     }
+}
 Return
 
 ; 鼠標側鍵 2 等於 F 键，按住等於按住 Alt 鍵顯示鼠標標
 XButton2::
-    KeyWait, XButton2, T0.2
-    If ErrorLevel
+{
+    
+    If KeyWait("XButton2", "T0.2")
     {
-        Send, {LAlt down}
-        KeyWait, XButton2
-        Send, {LAlt up}
+        Send "{LAlt down}"
+        KeyWait "XButton2"
+        Send "{LAlt up}"
     }
     else
     {
-        Send f
+        Send "f"
     }
-Return
+}
 
 ; 按住鼠標中鍵等於狂按左鍵（攻擊或者跳過對话）
 MButton::
+{
     Loop
     {
         Click
-        KeyWait, MButton, T0.1
-        If Not ErrorLevel
+        If KeyWait("MButton", "T0.2")
         {
             Break
         }
     }
-Return
+}
 
-; 按住空格等於狂按空格（按住 1.3 秒之后才觸發，因为離開浪船需要按住空格）
+; 按住空格等於狂按空格（按住 1.3 秒之后才觸發，因為離開浪船需要按住空格）
 ~*Space::
-    KeyWait, Space, T1.3
-    If Not ErrorLevel
+{
+    If KeyWait("Space", "T1.3")
     {
-        PixelGetColor, color, 700, 1020
-        If (color == 0xD8E5EC)
+        color := PixelGetColor(700, 1020)
+        ;換角色
+        If (color == 0xECE5D8)
         {
-            BlockInput, MouseMove
-            MouseMove, 700, 1020
-            Click
-            BlockInput, MouseMoveOff
+            BlockInput true
+            Click 700, 1020
+            BlockInput false
             Return
         }
-        PixelGetColor, color, 1130, 880
-        If (color == 0x66534A)
+
+        color := PixelGetColor(1130, 880)
+        If (color == 0x4A5366)
         {
-            BlockInput, MouseMove
-            MouseGetPos, xpos, ypos
-            MouseMove, 1130, 880
-            Click
-            MouseMove, %xpos%, %ypos%
-            BlockInput, MouseMoveOff
+            BlockInput true
+            MouseGetPos &xpos, &ypos
+            Click 1130, 880
+            MouseMove xpos, ypos
+            BlockInput false
             Return
         }
         Return
     }
     Loop
     {
-        Send, {Space}
-        KeyWait, Space, T0.05
-        If Not ErrorLevel
+        Send "{Space}"
+        If KeyWait("Space", "T0.05")
         {
             Break
         }
     }
-Return
+}
 
 ; 按住 f 等於狂按 f
 *f::
+{
     Loop
     {
-        Send, {Blind}f
-        KeyWait, f, T0.1
-        If Not ErrorLevel
+        SendInput "{Blind}f"
+        If KeyWait("f", "T0.1")
         {
             Break
         }
     }
-Return
+}
 
 ; 點兩下 h 自動4秒元素視野/長按則手動元素視野
 ~h::
-    KeyWait, h, T0.3
-    If Not ErrorLevel
+{
+    if KeyWait("h", "T0.3")
     {
-        KeyWait, h, D T0.2
-        If Not ErrorLevel
+        ;雙擊了
+        if KeyWait("h", "D T0.2")
         {
-            KeyWait, h
-            Send {MButton Down}
+            Send "{MButton Down}"
             ;每1000為1秒 //可自行改動
-            Sleep, 4000
-            Send {MButton Up}
+            Sleep 4000
+            Send "{MButton Up}"
         }
+        else
+        {
+            ;單擊了
+            ;回正視角
+            Send "{MButton}"
+        }
+    }else{
+        ;手動元素視野
+        Send "{MButton down}"
+        KeyWait("h")
+        Send "{MButton Up}"
     }
-    Else
-    {
-        h::MButton
-    }
-Return
+
+}
 
 ; 點兩下 w 按住 w
 ~w::
-    KeyWait, w, T0.3
-    If Not ErrorLevel
+{
+    If KeyWait("w", "T0.3")
     {
-        KeyWait, w, D T0.2
-        If Not ErrorLevel
+        If KeyWait("w", "D T0.2")
         {
-            KeyWait, w
-            Send {w down}
+            KeyWait "w"
+            Send "{w down}"
         }
     }
-Return
+}
 
 ; 釋放按住的 w
 ~s::
-    If Not GetKeyState("w", "P")
+{
+    If ! GetKeyState("w", "P")
     {
-        Send {w up}
+        Send "{w up}"
     }
-Return
+}
 
 ; 隊伍切換界面左右
 ~a::
-    PixelGetColor, color, 64, 538
-    If (color == 0xD8E5EC)
+{
+    color := PixelGetColor(64, 538)
+    If (color == 0xECE5D8)
     {
-        BlockInput, MouseMove
-        MouseMove, 64, 538
-        Click
-        BlockInput, MouseMoveOff
+        KeyWait "a"
+        BlockInput true
+        Click 64, 538
+        BlockInput false
     }
-Return
+}
 
 ~d::
-    PixelGetColor, color, 1853, 538
-    If (color == 0xD8E5EC)
-    {
-        BlockInput, MouseMove
-        MouseMove, 1853, 538
-        Click
-        BlockInput, MouseMoveOff
+{
+    color := PixelGetColor(1853, 538)
+    If (color == 0xECE5D8)
+        {
+        KeyWait "d"
+        BlockInput true
+        Click 1853, 538
+        BlockInput false
     }
-Return
+}
 
 ; 對話選項
 Selection(n) {
     xpos := 1298
     choices := 0
-    Loop, 8
+    Loop 8
     {
         ypos := 810 - 74 * choices
-        PixelGetColor, color, %xpos%, %ypos%
+        color := PixelGetColor(xpos, ypos)
         If (color != 0xFFFFFF)
         {
             Break
@@ -209,171 +238,191 @@ Selection(n) {
         Return False
     }
     ypos := 810 - 74 * choices + 74 * n
-    BlockInput, MouseMove
-    MouseMove, %xpos%, %ypos%
+    BlockInput true
+    MouseMove xpos, ypos
     Click
-    BlockInput, MouseMoveOff
+    BlockInput false
     Return True
 }
 
 ~1::
-    PixelGetColor, color, 64, 538
-    If (color == 0xD8E5EC)
+{
+    color := PixelGetColor(64, 538)
+    If (color == 0xECE5D8)
     {
-        BlockInput, MouseMove
-        MouseMove, 350, 490
+        BlockInput true
+        MouseMove 350, 490
         Click
-        BlockInput, MouseMoveOff
+        BlockInput false
         Return
     }
     If (Selection(1))
     {
         Return
     }
-Return
+}
 
 ~2::
-    PixelGetColor, color, 64, 538
-    If (color == 0xD8E5EC)
+{
+    color := PixelGetColor(64, 538)
+    If (color == 0xECE5D8)
     {
-        BlockInput, MouseMove
-        MouseMove, 760, 490
+        BlockInput true
+        MouseMove 760, 490
         Click
-        BlockInput, MouseMoveOff
+        BlockInput false
         Return
     }
     If (Selection(2))
     {
         Return
     }
-Return
+}
 
 ~3::
-    PixelGetColor, color, 64, 538
-    If (color == 0xD8E5EC)
+{
+    color := PixelGetColor(64, 538)
+    If (color == 0xECE5D8)
     {
-        BlockInput, MouseMove
-        MouseMove, 1170, 490
+        BlockInput true
+        MouseMove 1170, 490
         Click
-        BlockInput, MouseMoveOff
+        BlockInput false
         Return
     }
     If (Selection(3))
     {
         Return
     }
-Return
-
+}
+    
 ~4::
-    PixelGetColor, color, 64, 538
-    If (color == 0xD8E5EC)
+{
+    color := PixelGetColor(64, 538)
+    If (color == 0xECE5D8)
     {
-        BlockInput, MouseMove
-        MouseMove, 1590, 490
+        BlockInput true
+        MouseMove 1590, 490
         Click
-        BlockInput, MouseMoveOff
+        BlockInput false
         Return
     }
     If (Selection(4))
     {
         Return
     }
-Return
+}
 
 ~5::
+{
     If (Selection(5))
     {
         Return
     }
-Return
+}
 
 ~6::
+{
     If (Selection(6))
     {
         Return
     }
-Return
+}
 
 ~7::
+{
     If (Selection(7))
     {
         Return
     }
-Return
+}
 
 ; 替换聖遺物
 p::
-    BlockInput, MouseMove
-    MouseGetPos, xpos, ypos
-    MouseMove, 1600, 1000
+{
+    BlockInput true
+    MouseGetPos &xpos, &ypos
+    MouseMove 1600, 1000
     Click
     Sleep 100
-    MouseMove, 1200, 760
+    MouseMove 1200, 760
     Click
     Sleep 100
-    MouseMove, %xpos%, %ypos%
-    BlockInput, MouseMoveOff
-Return
+    MouseMove xpos, ypos
+    BlockInput false
+}
 
 ; 强化聖遺物(手動)
 F8::
-    BlockInput, MouseMove
-    MouseGetPos, xpos, ypos
+{
+    BlockInput true
+    MouseGetPos &xpos, &ypos
     xpos2 := xpos
     ypos2 := ypos
-    Loop, 6
+    Loop 6
     {
         Click
+        Sleep 50
         xpos2 += 142
         If (xpos2 > 1142)
         {
             xpos2 -= 8 * 142
             ypos2 += 168
         }
-        MouseMove %xpos2%, %ypos2%
+        MouseMove xpos2, ypos2
     }
-    Send {Esc}
+    Send "{Esc}"
     Sleep 100
-    MouseMove, 1600, 1000
+    MouseMove 1600, 1000
     Click
-    MouseMove, 1180, 754
+    Sleep 50
+    MouseMove 1180, 754
     Click
-    MouseMove, 130, 150
+    Sleep 50
+    MouseMove 130, 150
     Click
-    MouseMove, 130, 225
+    Sleep 50
+    MouseMove 130, 225
     Click
-    MouseMove, 1250, 870
+    Sleep 50
+    MouseMove 1250, 870
     Click
     ;MouseMove, xpos, ypos
-    BlockInput, MouseMoveOff
-Return
+    BlockInput false
+}
 
 ; 强化聖遺物(自動置入)
 F9::
-    BlockInput, MouseMove
-    MouseMove, 1650, 760
+{
+    BlockInput true
+    MouseMove 1650, 760
     Click
-    MouseMove, 1600, 1000
+    Sleep 50
+    MouseMove 1600, 1000
     Click
-    MouseMove, 1180, 754
+    Sleep 50
+    MouseMove 1180, 754
     Click
-    MouseMove, 130, 150
+    Sleep 50
+    MouseMove 130, 150
     Click
-    MouseMove, 130, 225
+    Sleep 50
+    MouseMove 130, 225
     Click
-    BlockInput, MouseMoveOff
-Return
+    Sleep 50
+    MouseMove 1650, 760
+    BlockInput false
+}
 
 ; 點擊右下角的確定/砍樹
 Tab::
-    KeyWait, Tab, T0.3
-    If ErrorLevel
+{
+    If ! KeyWait("Tab", "T0.3")
     {
         Loop
         {
             Click
-            KeyWait, Tab, T0.6
-            If Not ErrorLevel
+            If KeyWait("Tab", "T0.6")
             {
                 Break
             }
@@ -381,43 +430,37 @@ Tab::
     }
     else
     {
-        BlockInput, MouseMove
-        MouseGetPos, xpos, ypos
-        MouseMove, 1650, 1000
-        Click
-        MouseMove, %xpos%, %ypos%
-        BlockInput, MouseMoveOff
+        MouseGetPos &xpos, &ypos
+        Click 1650, 1000
+        Sleep 50
+        MouseMove xpos, ypos
     }
-Return
+}
 
 ; 5個探索派遣
 ; x1, y1 為地區座標
 ; x2, y2 為派遣座標
 ; x3, y3 為人物座標
 Expedition(x1, y1, x2, y2, x3, y3) {
-    BlockInput, MouseMove
+    BlockInput true
     ;選擇地區
-    MouseMove, x1, y1
-    Sleep 50
-    Click
+    Click x1, y1
+    Sleep 150
     ;選擇派遣位置
-    MouseMove, x2, y2
+    Click x2, y2
     Sleep 50
-    Click
     ;領取獎勵(勿動)
-    MouseMove, 1650, 1000
+    MouseMove 1650, 1000
     Click
     ;退出獎勵介面
-    Sleep 250
-    Click
+    SendInput "{Esc}"
     ;再次按派遣按鈕
-    Sleep 300
     Click
+    Sleep 150
     ;選擇人物
-    MouseMove, x3, y3
-    Sleep 50
-    Click
-    BlockInput, MouseMoveOff
+    Click x3, y3
+    Sleep 150
+    BlockInput false
 }
 
 ; x1, y1 為地區座標
@@ -425,8 +468,9 @@ Expedition(x1, y1, x2, y2, x3, y3) {
 ; x3, y3 為人物座標
 ; Expedition(x1, y1, x2, y2, x3, y3)
 F10::
+{
     ; 蒙德
-    Expedition(150, 165, 1063, 333, 300, 150)
+    Expedition(150, 165, 1050, 330, 300, 150)
     ; 璃月
     Expedition(150, 230, 810, 560, 300, 260)
     Expedition(150, 230, 560, 560, 300, 370)
@@ -434,4 +478,4 @@ F10::
     Expedition(150, 300, 1100, 280, 300, 260)
     ; 須彌
     Expedition(150, 380, 1030, 610, 300, 150)
-Return
+}
