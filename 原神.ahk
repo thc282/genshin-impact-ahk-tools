@@ -1,5 +1,6 @@
 ; https://stackoverflow.com/questions/43298908/how-to-add-administrator-privileges-to-autohotkey-script
 #SingleInstance Force
+;@Ahk2Exe-UpdateManifest 1
 full_command_line := DllCall("GetCommandLine", "str")
 if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
 {
@@ -13,21 +14,38 @@ if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
   ExitApp
 }
 
+;防泛濫觸發
+SetKeyDelay 500
+
 ;設定取位方法
 CoordMode "Pixel", "Client"
 CoordMode "Mouse", "Client"
 
 SendMode "Event"
-
+SetTitleMatchMode "RegEx"
 ;設定圖標
 I_Icon := "klee.ico"
 If FileExist(I_Icon)
     TraySetIcon(I_Icon)
 
+WinTitle := "ahk_exe GenshinImpact"
+Global PreventCheat := false
+Global ScenarioList := {Chatting:false, Login:false}
 /*
     ==========================================================
-    模組(勿碰)
+    檢測
     ==========================================================
+*/
+;立刻檢測是否前台
+CheckActive
+;每5秒檢測是否前台
+SetTimer CheckActive, 5000
+
+
+/*
+==========================================================
+模組(勿碰)
+==========================================================
 */
 IsColor(x,y,color_code){
     return PixelGetColor(x,y) == color_code ? true : false
@@ -37,44 +55,68 @@ IsChatting(){
     ChatReturn := IsColor(35, 60, "0xECE5D8")
     SendIcon := IsColor(985, 1010, "0x313131")
     SendButton := IsColor(1030, 1010, "0xECE5D8")
-    return (ChatReturn && SendIcon && SendButton) ? true : false
+    if (ChatReturn && SendIcon && SendButton)
+        ScenarioList.Chatting := true
+    else
+        ScenarioList.Chatting := false
+}
+
+IsLogin(){
+    LoginTab := IsColor(730, 300, "0xFFFFFF")
+    LoginBtn := IsColor(800, 680, "0x393B40")
+    if (LoginTab && LoginBtn)
+        ScenarioList.Login := true
+    else
+        ScenarioList.Login := false
+}
+
+;當原神開啟時檢測, 每100ms
+CheckENV(){
+    ;聊天/登入時禁
+    IsChatting
+    IsLogin
+}
+
+;每5秒檢測視窗是否前台
+CheckActive(){
+    if WinWaitActive(WinTitle,,5){
+        CheckENV
+        SetTimer CheckENV, 500
+        Suspend false
+    }else{
+        Suspend true
+        SetTimer CheckENV, 0
+    }
+}
+
+RandDelay(){
+    RandSleep := Random(0.05, 0.15)
+    Sleep RandSleep
 }
 /*
-    ==========================================================
-    主要
-    ==========================================================
+==========================================================
+主要
+==========================================================
 */
-#HotIf WinActive("ahk_exe GenshinImpact.exe")
-    ; 按Alt+N暫停所有熱鍵, 再次Alt+N啟動
+#HotIf WinActive("ahk_exe GenshinImpact.exe") && !ScenarioList.Chatting && !ScenarioList.Login
+; 按Alt+N暫停所有熱鍵, 再次Alt+N啟動
     #SuspendExempt 
     ~!n::
     {
         Suspend
         ToolTip a_isSuspended ? "插件已暫停":"插件運作中"
+        SetTimer CheckActive, (A_IsSuspended) == 1 ? 0 : 5000
         Sleep 3000
         ToolTip
     }
     #SuspendExempt false
-
+    
     ;以下是熱鍵設定
     ;F1::l
     ;F2::o
     ;RCtrl::LCtrl
     *`::Tab
     ~#`::Send "#``"
-
-    ;當原神開啟時檢測
-    SetTitleMatchMode "RegEx"
-    Loop {
-        WinWaitActive("ahk_exe GenshinImpact")
-        ;聊天時禁
-        if IsChatting(){
-            Suspend 1
-        }else{
-            Suspend 0
-        }
-        Sleep 100
-    }
 
     ; 鼠標側鍵 1 等於前進，連按兩下等於按住 w
     XButton1::
@@ -99,7 +141,6 @@ IsChatting(){
     ; 鼠標側鍵 2 等於 F 键，按住等於按住 Alt 鍵顯示鼠標標
     XButton2::
     {
-        
         If KeyWait("XButton2", "T0.2")
         {
             Send "{LAlt down}"
@@ -113,16 +154,15 @@ IsChatting(){
     }
 
     ; 按住鼠標中鍵等於狂按左鍵（攻擊或者跳過對话）
-    MButton::
+    *MButton::
     {
-        Loop
-        {
-            Click
-            If KeyWait("MButton", "T0.2")
-            {
-                Break
+        Loop{
+            if(!GetKeyState("CapsLock", "T"))
+                Click
+            else{
+                DllCall("mouse_event", "UInt", 0x0001, "UInt", A_ScreenWidth*10, "UInt", 0)
             }
-        }
+        }Until KeyWait("MButton", "T0.2")
     }
 
     ; 按住空格等於狂按空格（按住 1.3 秒之后才觸發，因為離開浪船需要按住空格）
@@ -168,6 +208,8 @@ IsChatting(){
         Loop
         {
             SendInput "f"
+            if(PreventCheat)
+                RandDelay
         }Until KeyWait("f", "T0.05")
     }
 
@@ -248,7 +290,7 @@ IsChatting(){
 
     ; 對話選項
     Selection(n) {
-        xpos := 1298
+        xpos := 1303
         choices := 0
         Loop 8
         {
@@ -365,7 +407,7 @@ IsChatting(){
     }
 
     ; 替换聖遺物
-    p::
+    /*p::
     {
         BlockInput true
         MouseGetPos &xpos, &ypos
@@ -377,11 +419,12 @@ IsChatting(){
         Sleep 100
         MouseMove xpos, ypos
         BlockInput false
-    }
+    }*/
 
     ; 强化聖遺物(手動)
-    F8::
+    /*F8::
     {
+        SendMode "Input"
         BlockInput true
         MouseGetPos &xpos, &ypos
         xpos2 := xpos
@@ -398,17 +441,21 @@ IsChatting(){
             }
             MouseMove xpos2, ypos2
         }
+        
+        Sleep 50
         Send "{Esc}"
-        Sleep 100
+        Sleep 150
         MouseMove 1600, 1000
+        Sleep 200
         Click
         Sleep 50
         MouseMove 1180, 754
-        Click
         Sleep 50
+        Click
+        Sleep 250
         MouseMove 130, 150
         Click
-        Sleep 50
+        Sleep 150
         MouseMove 130, 225
         Click
         Sleep 50
@@ -416,11 +463,13 @@ IsChatting(){
         Click
         ;MouseMove, xpos, ypos
         BlockInput false
-    }
+        SendMode "Event"
+    }*/
 
     ; 强化聖遺物(自動置入)
-    F9::
+    /*F9::
     {
+        SendMode "Input"
         BlockInput true
         MouseMove 1650, 760
         Click
@@ -433,14 +482,49 @@ IsChatting(){
         Sleep 50
         MouseMove 130, 150
         Click
-        Sleep 50
+        Sleep 150
         MouseMove 130, 225
         Click
         Sleep 50
         MouseMove 1650, 760
         BlockInput false
+        SendMode "Event"
+    }*/
+    
+    #MaxThreadsPerHotkey 2
+    ;自動跳過劇情(1920x1080下運作)
+    ;F12 啟動/取消
+    F12::{
+        Static on := False
+        If on := !on{
+            ;左上角顯示運行中
+            ToolTip("Auto skip on",10,10)
+            xpos := 1303
+            Loop{
+                ypos := 810
+                choices := 0
+                SendInput "f"
+                sleep Random(200,500)
+                color := PixelGetColor(xpos, ypos)
+                If (color = 0xFFFFFF){
+                    Loop 8
+                    {
+                        ypos := 810 - 74 * choices
+                        color := PixelGetColor(xpos, ypos)
+                        If (color != 0xFFFFFF)
+                        {
+                            Break
+                        }
+                        choices += 1
+                    }
+                    ypos := 810 - 74 * choices + 74 * 1
+                    Click xpos, ypos
+                }
+            }
+        } Else Reload
     }
 
+    #MaxThreadsPerHotkey 0
     ; 點擊右下角的確定/砍樹
     Tab::
     {
@@ -449,11 +533,7 @@ IsChatting(){
             Loop
             {
                 Click
-                If KeyWait("Tab", "T0.6")
-                {
-                    Break
-                }
-            }
+            }until KeyWait("Tab", "T0.6")
         }
         else
         {
@@ -464,47 +544,12 @@ IsChatting(){
         }
     }
 
-    ; 5個探索派遣
-    ; x1, y1 為地區座標
-    ; x2, y2 為派遣座標
-    ; x3, y3 為人物座標
-    Expedition(x1, y1, x2, y2, x3, y3) {
-        BlockInput true
-        ;選擇地區
-        Click x1, y1
-        Sleep 50
-        ;選擇派遣位置
-        Click x2, y2
-        Sleep 50
-        ;領取獎勵(勿動)
-        Click 1650, 1000
-        Sleep 150
-        ;退出獎勵介面
-        Click
-        Sleep 200
-        ;再次按派遣按鈕
-        Click
-        Sleep 150
-        ;選擇人物
-        Click x3, y3
-        Sleep 200
-        BlockInput false
-    }
-
-    ; x1, y1 為地區座標
-    ; x2, y2 為派遣座標
-    ; x3, y3 為人物座標
-    ; Expedition(x1, y1, x2, y2, x3, y3)
-    F10::
-    {
-        ; 蒙德
-        Expedition(150, 165, 1050, 330, 300, 150)
-        ; 璃月
-        Expedition(150, 230, 810, 560, 300, 260)
-        Expedition(150, 230, 560, 560, 300, 370)
-        ; 稻妻
-        Expedition(150, 300, 1100, 280, 300, 260)
-        ; 須彌
-        Expedition(150, 380, 1030, 610, 300, 150)
+    ~CapsLock::{
+        if GetKeyState("CapsLock", "T")
+            ToolTip "Capslock is on"
+        else
+            ToolTip "Capslock is off"
+        sleep 1500
+        ToolTip
     }
 #HotIf
