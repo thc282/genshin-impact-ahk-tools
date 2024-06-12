@@ -46,8 +46,8 @@ Tab 键用来点右下角的按钮，这样就不用鼠标去找位置点了。
 | 元素視野秒數 | 設定秒數(1000為1秒) | |
 
 ## 使用方法
-[到這裡選版本](https://github.com/thc282/genshin-impact-ahk-tools/releases)，下載ZIP檔並解壓。 \
-然后雙擊運行 `原神ahk.exe` 。
+[到這裡選版本](https://github.com/thc282/genshin-impact-ahk-tools/releases)，下載最新版EXE。 \
+然后雙擊運行 EXE 檔 。
 <details>
   <summary>如何關閉插件</summary>
   
